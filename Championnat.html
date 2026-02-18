@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Championnat Étudiant</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #2c3e50;
+    }
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 90%;
+      max-width: 800px;
+      background-color: #fff;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+    }
+  th {
+      background-color: #2980b9;
+      color: white;
+    }
+    input[type="number"] {
+      width: 50px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      background-color: #27ae60;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #2ecc71;
+    }
+  </style>
+</head>
+<body>
+  <h1>Championnat Étudiant - Tableau de Classement</h1>
+
+  <table id="classement">
+    <thead>
+      <tr>
+        <th>Équipe</th>
+        <th>J</th>
+        <th>V</th>
+        <th>N</th>
+        <th>D</th>
+        <th>Buts marqués</th>
+        <th>Buts encaissés</th>
+        <th>Diff</th>
+        <th>Points</th>
+      </tr>
+    </thead>
+    <tbody id="teams-body">
+    </tbody>
+  </table>
+
+  <h2>Ajouter un résultat de match</h2>
+  <form id="matchForm">
+    <select id="team1">
+      <option value="">--Équipe 1--</option>
+    </select>
+    <input type="number" id="score1" min="0" placeholder="0">
+    vs
+    <input type="number" id="score2" min="0" placeholder="0">
+    <select id="team2">
+      <option value="">--Équipe 2--</option>
+    </select>
+    <button type="submit">Ajouter Match</button>
+  </form>
+
+  <script>
+    const teams = [
+      "Adankanlin",
+      "Unify FC",
+      "Killer instinct FC",
+      "Spartans",
+      "Panafrica",
+      "Crimson Titans",
+      "AfriTeam"
+    ];
+
+    let classement = {};
+
+    teams.forEach(team => {
+      classement[team] = {
+        J: 0, V: 0, N: 0, D: 0, BM: 0, BE: 0, Diff: 0, Points: 0
+      };
+    });
+
+    const team1Select = document.getElementById("team1");
+    const team2Select = document.getElementById("team2");
+    const tbody = document.getElementById("teams-body");
+
+    teams.forEach(team => {
+      let option1 = document.createElement("option");
+      option1.value = team;
+      option1.textContent = team;
+      team1Select.appendChild(option1);
+
+      let option2 = document.createElement("option");
+      option2.value = team;
+      option2.textContent = team;
+      team2Select.appendChild(option2);
+    });
+
+    function updateTable() {
+      tbody.innerHTML = "";
+      // trier par points et différence de buts
+      let sortedTeams = Object.keys(classement).sort((a,b) => {
+        if (classement[b].Points === classement[a].Points) {
+          return classement[b].Diff - classement[a].Diff;
+        }
+        return classement[b].Points - classement[a].Points;
+      });
+
+      sortedTeams.forEach(team => {
+        let tr = document.createElement("tr");
+        let data = classement[team];
+        tr.innerHTML = `
+          <td>${team}</td>
+          <td>${data.J}</td>
+          <td>${data.V}</td>
+          <td>${data.N}</td>
+          <td>${data.D}</td>
+          <td>${data.BM}</td>
+          <td>${data.BE}</td>
+          <td>${data.Diff}</td>
+          <td>${data.Points}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.getElementById("matchForm").addEventListener("submit", function(e){
+      e.preventDefault();
+      const t1 = team1Select.value;
+      const t2 = team2Select.value;
+      const s1 = parseInt(document.getElementById("score1").value);
+      const s2 = parseInt(document.getElementById("score2").value);
+
+      if (!t1 || !t2 || t1 === t2 || isNaN(s1) || isNaN(s2)) {
+        alert("Veuillez remplir correctement le match");
+          return;
+      }
+
+      // Mise à jour des stats
+      classement[t1].J += 1;
+      classement[t2].J += 1;
+      classement[t1].BM += s1;
+      classement[t2].BM += s2;
+      classement[t1].BE += s2;
+      classement[t2].BE += s1;
+      classement[t1].Diff = classement[t1].BM - classement[t1].BE;
+      classement[t2].Diff = classement[t2].BM - classement[t2].BE;
+
+      if (s1 > s2) {
+        classement[t1].V += 1;
+        classement[t2].D += 1;
+        classement[t1].Points += 3;
+      } else if (s1 < s2) {
+        classement[t2].V += 1;
+        classement[t1].D += 1;
+        classement[t2].Points += 3;
+      } else {
+        classement[t1].N += 1;
+        classement[t2].N += 1;
+        classement[t1].Points += 1;
+        classement[t2].Points += 1;
+      }
+
+      updateTable();
+      this.reset();
+    });
+
+    updateTable();
+  </script>
+</body>
+</html>
